@@ -5,7 +5,9 @@ import {App} from "./App";
 const app = new Hono();
 
 app.use('/static/*', serveStatic({ root: './' }));
-app.use('/favicon.ico', serveStatic({ path: './favicon.ico' }));
+
+app.get('/hello', (c) => c.text('You can access: /static/hello.txt'))
+
 
 app.get('/', (c) => {
     return c.html(
