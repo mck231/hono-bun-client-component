@@ -14,7 +14,7 @@ app.get('/', (c) => {
         <div id="root">
             <App /> {/* Render the App component on the server */}
         </div>
-        <script src="/static/client.js" type="module"></script>
+        <script src="/static/App.js" type="module"></script>
         </body>
         </html>
     );

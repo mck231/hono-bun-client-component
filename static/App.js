@@ -591,6 +591,119 @@ var jsxFn = (tag, props, children2) => {
   }
 };
 
+// node_modules/hono/dist/jsx/dom/intrinsic-element/components.js
+var exports_components2 = {};
+__export(exports_components2, {
+  title: () => title2,
+  style: () => style2,
+  script: () => script2,
+  meta: () => meta2,
+  link: () => link2,
+  input: () => input2,
+  form: () => form2,
+  composeRef: () => composeRef,
+  clearCache: () => clearCache,
+  button: () => button2
+});
+
+// node_modules/hono/dist/jsx/hooks/index.js
+var STASH_SATE = 0;
+var STASH_EFFECT = 1;
+var STASH_CALLBACK = 2;
+var STASH_MEMO = 3;
+var resolvedPromiseValueMap = /* @__PURE__ */ new WeakMap;
+var isDepsChanged = (prevDeps, deps) => !prevDeps || !deps || prevDeps.length !== deps.length || deps.some((dep, i) => dep !== prevDeps[i]);
+var updateHook = undefined;
+var pendingStack = [];
+var useState = (initialState) => {
+  const resolveInitialState = () => typeof initialState === "function" ? initialState() : initialState;
+  const buildData = buildDataStack.at(-1);
+  if (!buildData) {
+    return [resolveInitialState(), () => {
+    }];
+  }
+  const [, node] = buildData;
+  const stateArray = node[DOM_STASH][1][STASH_SATE] ||= [];
+  const hookIndex = node[DOM_STASH][0]++;
+  return stateArray[hookIndex] ||= [
+    resolveInitialState(),
+    (newState) => {
+      const localUpdateHook = updateHook;
+      const stateData = stateArray[hookIndex];
+      if (typeof newState === "function") {
+        newState = newState(stateData[0]);
+      }
+      if (!Object.is(newState, stateData[0])) {
+        stateData[0] = newState;
+        if (pendingStack.length) {
+          const [pendingType, pendingPromise] = pendingStack.at(-1);
+          Promise.all([
+            pendingType === 3 ? node : update([pendingType, false, localUpdateHook], node),
+            pendingPromise
+          ]).then(([node2]) => {
+            if (!node2 || !(pendingType === 2 || pendingType === 3)) {
+              return;
+            }
+            const lastVC = node2.vC;
+            const addUpdateTask = () => {
+              setTimeout(() => {
+                if (lastVC !== node2.vC) {
+                  return;
+                }
+                update([pendingType === 3 ? 1 : 0, false, localUpdateHook], node2);
+              });
+            };
+            requestAnimationFrame(addUpdateTask);
+          });
+        } else {
+          update([0, false, localUpdateHook], node);
+        }
+      }
+    }
+  ];
+};
+var useCallback = (callback, deps) => {
+  const buildData = buildDataStack.at(-1);
+  if (!buildData) {
+    return callback;
+  }
+  const [, node] = buildData;
+  const callbackArray = node[DOM_STASH][1][STASH_CALLBACK] ||= [];
+  const hookIndex = node[DOM_STASH][0]++;
+  const prevDeps = callbackArray[hookIndex];
+  if (isDepsChanged(prevDeps?.[1], deps)) {
+    callbackArray[hookIndex] = [callback, deps];
+  } else {
+    callback = callbackArray[hookIndex][0];
+  }
+  return callback;
+};
+var use = (promise) => {
+  const cachedRes = resolvedPromiseValueMap.get(promise);
+  if (cachedRes) {
+    if (cachedRes.length === 2) {
+      throw cachedRes[1];
+    }
+    return cachedRes[0];
+  }
+  promise.then((res) => resolvedPromiseValueMap.set(promise, [res]), (e) => resolvedPromiseValueMap.set(promise, [undefined, e]));
+  throw promise;
+};
+var useMemo = (factory, deps) => {
+  const buildData = buildDataStack.at(-1);
+  if (!buildData) {
+    return factory();
+  }
+  const [, node] = buildData;
+  const memoArray = node[DOM_STASH][1][STASH_MEMO] ||= [];
+  const hookIndex = node[DOM_STASH][0]++;
+  const prevDeps = memoArray[hookIndex];
+  if (isDepsChanged(prevDeps?.[1], deps)) {
+    memoArray[hookIndex] = [factory(), deps];
+  }
+  return memoArray[hookIndex][0];
+};
+
 // node_modules/hono/dist/jsx/dom/render.js
 var HONO_PORTAL_ELEMENT = "_hp";
 var eventAliasMap = {
@@ -1116,7 +1229,7 @@ var renderNode = (node, container) => {
   replaceContainer(node, fragment, container);
   container.replaceChildren(fragment);
 };
-var render = (jsxNode, container) => {
+var render2 = (jsxNode, container) => {
   renderNode(buildNode({ tag: "", props: { children: jsxNode } }), container);
 };
 var createPortal = (children3, container, key) => ({
@@ -1128,104 +1241,6 @@ var createPortal = (children3, container, key) => ({
   e: container,
   p: 1
 });
-
-// node_modules/hono/dist/jsx/hooks/index.js
-var STASH_SATE = 0;
-var STASH_EFFECT = 1;
-var STASH_CALLBACK = 2;
-var STASH_MEMO = 3;
-var resolvedPromiseValueMap = /* @__PURE__ */ new WeakMap;
-var isDepsChanged = (prevDeps, deps) => !prevDeps || !deps || prevDeps.length !== deps.length || deps.some((dep, i) => dep !== prevDeps[i]);
-var updateHook = undefined;
-var pendingStack = [];
-var useState = (initialState) => {
-  const resolveInitialState = () => typeof initialState === "function" ? initialState() : initialState;
-  const buildData = buildDataStack.at(-1);
-  if (!buildData) {
-    return [resolveInitialState(), () => {
-    }];
-  }
-  const [, node] = buildData;
-  const stateArray = node[DOM_STASH][1][STASH_SATE] ||= [];
-  const hookIndex = node[DOM_STASH][0]++;
-  return stateArray[hookIndex] ||= [
-    resolveInitialState(),
-    (newState) => {
-      const localUpdateHook = updateHook;
-      const stateData = stateArray[hookIndex];
-      if (typeof newState === "function") {
-        newState = newState(stateData[0]);
-      }
-      if (!Object.is(newState, stateData[0])) {
-        stateData[0] = newState;
-        if (pendingStack.length) {
-          const [pendingType, pendingPromise] = pendingStack.at(-1);
-          Promise.all([
-            pendingType === 3 ? node : update([pendingType, false, localUpdateHook], node),
-            pendingPromise
-          ]).then(([node2]) => {
-            if (!node2 || !(pendingType === 2 || pendingType === 3)) {
-              return;
-            }
-            const lastVC = node2.vC;
-            const addUpdateTask = () => {
-              setTimeout(() => {
-                if (lastVC !== node2.vC) {
-                  return;
-                }
-                update([pendingType === 3 ? 1 : 0, false, localUpdateHook], node2);
-              });
-            };
-            requestAnimationFrame(addUpdateTask);
-          });
-        } else {
-          update([0, false, localUpdateHook], node);
-        }
-      }
-    }
-  ];
-};
-var useCallback = (callback, deps) => {
-  const buildData = buildDataStack.at(-1);
-  if (!buildData) {
-    return callback;
-  }
-  const [, node] = buildData;
-  const callbackArray = node[DOM_STASH][1][STASH_CALLBACK] ||= [];
-  const hookIndex = node[DOM_STASH][0]++;
-  const prevDeps = callbackArray[hookIndex];
-  if (isDepsChanged(prevDeps?.[1], deps)) {
-    callbackArray[hookIndex] = [callback, deps];
-  } else {
-    callback = callbackArray[hookIndex][0];
-  }
-  return callback;
-};
-var use = (promise) => {
-  const cachedRes = resolvedPromiseValueMap.get(promise);
-  if (cachedRes) {
-    if (cachedRes.length === 2) {
-      throw cachedRes[1];
-    }
-    return cachedRes[0];
-  }
-  promise.then((res) => resolvedPromiseValueMap.set(promise, [res]), (e) => resolvedPromiseValueMap.set(promise, [undefined, e]));
-  throw promise;
-};
-var useMemo = (factory, deps) => {
-  const buildData = buildDataStack.at(-1);
-  if (!buildData) {
-    return factory();
-  }
-  const [, node] = buildData;
-  const memoArray = node[DOM_STASH][1][STASH_MEMO] ||= [];
-  const hookIndex = node[DOM_STASH][0]++;
-  const prevDeps = memoArray[hookIndex];
-  if (isDepsChanged(prevDeps?.[1], deps)) {
-    memoArray[hookIndex] = [factory(), deps];
-  }
-  return memoArray[hookIndex][0];
-};
 
 // node_modules/hono/dist/jsx/dom/hooks/index.js
 var FormContext = createContext({
@@ -1241,19 +1256,6 @@ var registerAction = (action) => {
 };
 
 // node_modules/hono/dist/jsx/dom/intrinsic-element/components.js
-var exports_components2 = {};
-__export(exports_components2, {
-  title: () => title2,
-  style: () => style2,
-  script: () => script2,
-  meta: () => meta2,
-  link: () => link2,
-  input: () => input2,
-  form: () => form2,
-  composeRef: () => composeRef,
-  clearCache: () => clearCache,
-  button: () => button2
-});
 var clearCache = () => {
   blockingPromiseMap = /* @__PURE__ */ Object.create(null);
   createdElements = /* @__PURE__ */ Object.create(null);
@@ -1592,24 +1594,24 @@ var Suspense = ({
 
 // node_modules/hono/dist/jsx/components.js
 var errorBoundaryCounter = 0;
-var childrenToString = async (children4) => {
+var childrenToString = async (children3) => {
   try {
-    return children4.flat().map((c) => c == null || typeof c === "boolean" ? "" : c.toString());
+    return children3.flat().map((c) => c == null || typeof c === "boolean" ? "" : c.toString());
   } catch (e) {
     if (e instanceof Promise) {
       await e;
-      return childrenToString(children4);
+      return childrenToString(children3);
     } else {
       throw e;
     }
   }
 };
-var ErrorBoundary2 = async ({ children: children4, fallback, fallbackRender, onError }) => {
-  if (!children4) {
+var ErrorBoundary2 = async ({ children: children3, fallback, fallbackRender, onError }) => {
+  if (!children3) {
     return raw("");
   }
-  if (!Array.isArray(children4)) {
-    children4 = [children4];
+  if (!Array.isArray(children3)) {
+    children3 = [children3];
   }
   let fallbackStr;
   const fallbackRes = (error) => {
@@ -1618,12 +1620,12 @@ var ErrorBoundary2 = async ({ children: children4, fallback, fallbackRender, onE
   };
   let resArray = [];
   try {
-    resArray = children4.map((c) => c == null || typeof c === "boolean" ? "" : c.toString());
+    resArray = children3.map((c) => c == null || typeof c === "boolean" ? "" : c.toString());
   } catch (e) {
     fallbackStr = await fallback?.toString();
     if (e instanceof Promise) {
       resArray = [
-        e.then(() => childrenToString(children4)).catch((e2) => fallbackRes(e2))
+        e.then(() => childrenToString(children3)).catch((e2) => fallbackRes(e2))
       ];
     } else {
       resArray = [fallbackRes(e)];
@@ -1655,7 +1657,7 @@ d.replaceWith(c.content)
     let error;
     const promiseAll = Promise.all(resArray).catch((e) => error = e);
     return raw(`<template id="E:${index}"></template><!--E:${index}-->`, [
-      ({ phase, buffer, context: context12 }) => {
+      ({ phase, buffer, context: context10 }) => {
         if (phase === HtmlEscapedCallbackPhase.BeforeStream) {
           return;
         }
@@ -1684,7 +1686,7 @@ d.parentElement.insertBefore(c.content,d.nextSibling)
           }
           const callbacks = htmlArray.map((html22) => html22.callbacks || []).flat();
           if (phase === HtmlEscapedCallbackPhase.Stream) {
-            html8 = await resolveCallback(html8, HtmlEscapedCallbackPhase.BeforeStream, true, context12);
+            html8 = await resolveCallback(html8, HtmlEscapedCallbackPhase.BeforeStream, true, context10);
           }
           let resolvedCount = 0;
           const promises = callbacks.map((c) => (...args) => c(...args)?.then((content2) => {
@@ -1720,14 +1722,14 @@ ErrorBoundary2[DOM_RENDERER] = ErrorBoundary;
 // node_modules/hono/dist/jsx/streaming.js
 var suspenseCounter = 0;
 var Suspense2 = async ({
-  children: children4,
+  children: children3,
   fallback
 }) => {
-  if (!children4) {
+  if (!children3) {
     return fallback.toString();
   }
-  if (!Array.isArray(children4)) {
-    children4 = [children4];
+  if (!Array.isArray(children3)) {
+    children3 = [children3];
   }
   let resArray = [];
   const stackNode = { [DOM_STASH]: [0, []] };
@@ -1738,14 +1740,14 @@ var Suspense2 = async ({
   try {
     stackNode[DOM_STASH][0] = 0;
     buildDataStack.push([[], stackNode]);
-    resArray = children4.map((c) => c == null || typeof c === "boolean" ? "" : c.toString());
+    resArray = children3.map((c) => c == null || typeof c === "boolean" ? "" : c.toString());
   } catch (e) {
     if (e instanceof Promise) {
       resArray = [
         e.then(() => {
           stackNode[DOM_STASH][0] = 0;
           buildDataStack.push([[], stackNode]);
-          return childrenToString(children4).then(popNodeStack);
+          return childrenToString(children3).then(popNodeStack);
         })
       ];
     } else {
@@ -1759,7 +1761,7 @@ var Suspense2 = async ({
     const fallbackStr = await fallback.toString();
     return raw(`<template id="H:${index}"></template>${fallbackStr}<!--/\$-->`, [
       ...fallbackStr.callbacks || [],
-      ({ phase, buffer, context: context12 }) => {
+      ({ phase, buffer, context: context10 }) => {
         if (phase === HtmlEscapedCallbackPhase.BeforeStream) {
           return;
         }
@@ -1783,7 +1785,7 @@ d.replaceWith(c.content)
             return html10;
           }
           if (phase === HtmlEscapedCallbackPhase.Stream) {
-            html10 = await resolveCallback(html10, HtmlEscapedCallbackPhase.BeforeStream, true, context12);
+            html10 = await resolveCallback(html10, HtmlEscapedCallbackPhase.BeforeStream, true, context10);
           }
           return raw(html10, callbacks);
         });
@@ -1839,9 +1841,12 @@ var App = () => {
     ]
   }, undefined, true, undefined, this);
 };
-
-// src/client.tsx
-var root = document.getElementById("root");
-if (root) {
-  render(/* @__PURE__ */ jsxDEV2(App, {}, undefined, false, undefined, this), root);
+if (typeof window !== "undefined") {
+  const root = document.getElementById("root");
+  if (root) {
+    render2(/* @__PURE__ */ jsxDEV2(App, {}, undefined, false, undefined, this), root);
+  }
 }
+export {
+  App
+};

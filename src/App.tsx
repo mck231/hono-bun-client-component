@@ -1,4 +1,5 @@
-import { FC, useState } from 'hono/jsx'; // This is safe because `hono/jsx` is compatible with both client and server environments
+import { FC, useState } from 'hono/jsx';
+import {render} from 'hono/jsx/dom';
 
 function Counter() {
     const [count, setCount] = useState(0);
@@ -18,3 +19,10 @@ export const App: FC = () => {
         </div>
     );
 };
+
+if (typeof window !== 'undefined') {
+    const root = document.getElementById('root');
+    if (root) {
+        render(<App />, root);
+    }
+}
